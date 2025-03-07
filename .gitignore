@@ -1,0 +1,8 @@
+.idea
+.DS_Store
+dist
+output
+pmail.db
+server/plugins
+*_KEY
+AURORA_SECRET
