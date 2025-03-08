@@ -1,0 +1,24 @@
+name: docker build
+
+on:
+  workflow_dispatch:
+  release:
+    types: [released]
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Get version
+        id: get_version
+        run: |
+          echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> ${GITHUB_ENV}
+          echo "${GITHUB_REF/refs\/tags\//}"
+          echo "${GITHUB_REF#refs/*/}"
+          echo "${GITHUB_REF}"
