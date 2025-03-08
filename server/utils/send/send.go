@@ -5,6 +5,10 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"net"
+	"strings"
+	"sync"
+
 	"github.com/Jinnrry/pmail/config"
 	"github.com/Jinnrry/pmail/dto/parsemail"
 	"github.com/Jinnrry/pmail/models"
@@ -14,9 +18,6 @@ import (
 	"github.com/Jinnrry/pmail/utils/context"
 	"github.com/Jinnrry/pmail/utils/smtp"
 	log "github.com/sirupsen/logrus"
-	"net"
-	"strings"
-	"sync"
 )
 
 type mxDomain struct {
@@ -181,13 +182,13 @@ func Send(ctx *context.Context, e *parsemail.Email) (error, map[string]error) {
 		tos := tos
 		as.WaitProcess(func(p any) {
 
-			err := smtp.SendMail("", domain.mxHost+":25", nil, e.From.EmailAddress, fromDomain, buildAddress(tos), b)
+			err := smtp.SendMailWithTls("", domain.mxHost+":465", nil, e.From.EmailAddress, fromDomain, buildAddress(tos), b)
 
 			// 使用其他方式发送
 			if err != nil {
 				// EOF 表示未知错误，此时降级为非tls连接发送（目前仅139邮箱有这个问题）
 				if errors.Is(err, smtp.NoSupportSTARTTLSError) || err.Error() == "EOF" {
-					err = smtp.SendMailWithTls("", domain.mxHost+":465", nil, e.From.EmailAddress, fromDomain, buildAddress(tos), b)
+					err = smtp.SendMail("", domain.mxHost+":25", nil, e.From.EmailAddress, fromDomain, buildAddress(tos), b)
 					if err != nil {
 						log.WithContext(ctx).Warnf("Unsafe! %s Server Not Support SMTPS & STARTTLS", domain.domain)
 						err = smtp.SendMailUnsafe("", domain.mxHost+":25", nil, e.From.EmailAddress, fromDomain, buildAddress(tos), b)
