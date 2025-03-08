@@ -1,4 +1,4 @@
-name: docker build
+name: docker build test
 
 on:
   workflow_dispatch:
@@ -22,3 +22,23 @@ jobs:
           echo "${GITHUB_REF/refs\/tags\//}"
           echo "${GITHUB_REF#refs/*/}"
           echo "${GITHUB_REF}"
+
+      - name: set lower case repository name
+        run: |
+          echo "REPOSITORY_LC=${REPOSITORY,,}" >> ${GITHUB_ENV}
+        env:
+          REPOSITORY: '${{ github.repository }}'
+          
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - uses: actions/setup-node@v4
+
+      - name: Build FE
+        run: |
+          echo "$(git show -s --format=%H)"
+          echo "GITHASH=$(git show -s --format=%H)" >> ${GITHUB_ENV}
+          make build_fe
